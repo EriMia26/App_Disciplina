@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#1a1a2e">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Mi Disciplina">
+<title>Mi Disciplina</title>
+<link rel="manifest" href="manifest.json">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0f0f1a;
+  --surface: #1a1a2e;
+  --surface2: #22223b;
+  --accent: #7c6af7;
+  --accent2: #5fcf8a;
+  --accent3: #f7a256;
+  --text: #e8e6ff;
+  --text2: #9d9bbf;
+  --text3: #5a5878;
+  --border: rgba(255,255,255,0.07);
+  --r: 16px;
+  --rs: 10px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif}
+
+/* Layout */
+.app{display:flex;flex-direction:column;height:100vh;max-width:430px;margin:0 auto;position:relative}
+.screen{flex:1;overflow-y:auto;overflow-x:hidden;padding:0 0 80px;scrollbar-width:none}
+.screen::-webkit-scrollbar{display:none}
+
+/* Nav */
+.nav{display:flex;justify-content:space-around;align-items:center;padding:10px 0 max(10px, env(safe-area-inset-bottom));border-top:0.5px solid var(--border);background:rgba(15,15,26,0.95);backdrop-filter:blur(20px);position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;z-index:100}
+.nav-btn{display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 20px;cursor:pointer;border:none;background:none;color:var(--text3);transition:color .2s;font-family:'DM Sans',sans-serif;font-size:10px}
+.nav-btn.active{color:var(--accent)}
+.nav-icon{width:22px;height:22px}
+
+/* Header */
+.header{padding:52px 20px 20px;background:linear-gradient(180deg,rgba(124,106,247,0.12) 0%,transparent 100%)}
+.header-date{font-size:12px;color:var(--text3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px}
+.header-title{font-family:'DM Serif Display',serif;font-size:28px;line-height:1.2;color:var(--text)}
+.header-sub{font-size:13px;color:var(--text2);margin-top:6px}
+
+/* Cards */
+.card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--r);padding:16px;margin:0 16px 12px}
+.card-sm{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--rs);padding:12px}
+.label{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);font-weight:500;margin-bottom:8px}
+
+/* Streak */
+.streak-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding:0 16px}
+.streak-num{font-family:'DM Serif Display',serif;font-size:52px;color:var(--accent);line-height:1}
+.streak-label{font-size:12px;color:var(--text2);margin-top:2px}
+.streak-ring{width:70px;height:70px;position:relative}
+.streak-ring svg{transform:rotate(-90deg)}
+.streak-center{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'DM Serif Display',serif;font-size:22px;color:var(--accent)}
+
+/* Dias semana */
+.dias-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;padding:0 16px;margin-bottom:20px}
+.dia-btn{display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;background:none;border:none;padding:0}
+.dia-label{font-size:9px;color:var(--text3);font-weight:500;letter-spacing:.05em}
+.dia-circle{width:36px;height:36px;border-radius:50%;border:1.5px solid var(--text3);display:flex;align-items:center;justify-content:center;transition:all .25s;position:relative;overflow:hidden}
+.dia-circle.done{border-color:var(--accent2);background:var(--accent2)}
+.dia-circle.done svg{opacity:1}
+.dia-circle.today{border-color:var(--accent);box-shadow:0 0 0 3px rgba(124,106,247,0.2)}
+.dia-circle svg{opacity:0;transition:opacity .2s}
+.dia-circle.done svg{opacity:1}
+
+/* Actividades */
+.act-list{display:flex;flex-direction:column;gap:8px;padding:0 16px}
+.act-item{display:flex;align-items:center;gap:12px;background:var(--surface);border:0.5px solid var(--border);border-radius:var(--rs);padding:12px 14px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden}
+.act-item::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:3px 0 0 3px}
+.act-item.done{opacity:0.5}
+.act-item.done .act-name{text-decoration:line-through;color:var(--text3)}
+.act-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.act-name{font-size:14px;color:var(--text);font-weight:400;flex:1}
+.act-time{font-size:11px;color:var(--text3)}
+.act-check{width:22px;height:22px;border-radius:50%;border:1.5px solid var(--text3);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s}
+.act-item.done .act-check{background:var(--accent2);border-color:var(--accent2)}
+
+/* Ventanas */
+.ventana-card{border-radius:var(--rs);padding:14px;margin-bottom:8px;border:0.5px solid var(--border);cursor:pointer;transition:opacity .2s}
+.v-time{font-size:11px;font-weight:500;margin-bottom:4px;opacity:.8}
+.v-title{font-size:15px;font-weight:500;margin-bottom:3px}
+.v-desc{font-size:12px;opacity:.7;line-height:1.4}
+
+/* Progresion */
+.prog-item{display:flex;gap:14px;margin-bottom:20px;padding:0 16px}
+.prog-line{display:flex;flex-direction:column;align-items:center;gap:0}
+.prog-dot{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:500;flex-shrink:0;font-family:'DM Serif Display',serif}
+.prog-connector{width:1.5px;flex:1;min-height:24px;margin:4px 0}
+.prog-body{flex:1;padding-top:4px}
+.prog-sem{font-size:11px;font-weight:500;margin-bottom:3px;letter-spacing:.05em;text-transform:uppercase}
+.prog-title{font-size:15px;font-weight:500;color:var(--text);margin-bottom:4px;font-family:'DM Serif Display',serif}
+.prog-desc{font-size:12px;color:var(--text2);line-height:1.5}
+.prog-active{border:1.5px solid var(--accent);box-shadow:0 0 16px rgba(124,106,247,.3)}
+
+/* Barra progreso */
+.bar-wrap{background:rgba(255,255,255,.06);border-radius:99px;height:4px;overflow:hidden;margin-top:10px}
+.bar-fill{height:4px;border-radius:99px;transition:width .6s ease}
+
+/* Toast */
+.toast{position:fixed;bottom:96px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--surface2);border:0.5px solid var(--border);border-radius:99px;padding:10px 20px;font-size:13px;color:var(--text);white-space:nowrap;opacity:0;transition:all .3s;z-index:200;max-width:320px;text-align:center}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* Section title */
+.sec-title{font-family:'DM Serif Display',serif;font-size:20px;padding:20px 16px 12px;color:var(--text)}
+
+/* Semana selector */
+.semana-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(124,106,247,.15);border:0.5px solid rgba(124,106,247,.3);border-radius:99px;padding:4px 12px;font-size:12px;color:var(--accent);margin:0 16px 16px;cursor:pointer}
+
+/* Stats mini */
+.stats-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:0 16px;margin-bottom:20px}
+.stat-card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--rs);padding:12px;text-align:center}
+.stat-num{font-family:'DM Serif Display',serif;font-size:24px;line-height:1}
+.stat-lbl{font-size:10px;color:var(--text3);margin-top:3px;letter-spacing:.05em;text-transform:uppercase}
+
+.fade-in{animation:fadeIn .3s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* Editar */
+.edit-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;display:flex;align-items:center;gap:12px}
+.edit-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0}
+.edit-info{flex:1;min-width:0}
+.edit-nombre{font-size:14px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.edit-tiempo{font-size:12px;color:var(--text2);margin-top:2px}
+.edit-dias{font-size:11px;color:var(--text3);margin-top:2px}
+.edit-btn{background:var(--surface2);border:none;color:var(--text2);padding:8px 12px;border-radius:8px;cursor:pointer;font-size:12px;flex-shrink:0}
+.dia-btn{padding:8px 12px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--text2);font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;transition:all .2s}
+.dia-btn.sel{background:var(--accent);border-color:var(--accent);color:#fff}
+.color-opt{width:32px;height:32px;border-radius:50%;cursor:pointer;transition:transform .2s;border:3px solid transparent}
+.color-opt.sel{border-color:#fff;transform:scale(1.15)}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- PANTALLA HOY -->
+  <div class="screen fade-in" id="screen-hoy">
+    <div class="header">
+      <div class="header-date" id="fecha-hoy"></div>
+      <div class="header-title">Buenos días ✦</div>
+      <div class="header-sub">¿Qué haces primero hoy?</div>
+    </div>
+
+    <div class="streak-row">
+      <div>
+        <div id="streak-num" class="streak-num">0</div>
+        <div class="streak-label">días seguidos</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:2px" id="streak-msg">¡Empieza hoy!</div>
+      </div>
+      <div class="streak-ring">
+        <svg width="70" height="70" viewBox="0 0 70 70">
+          <circle cx="35" cy="35" r="28" fill="none" stroke="rgba(255,255,255,0.07)" stroke-width="5"/>
+          <circle cx="35" cy="35" r="28" fill="none" stroke="var(--accent)" stroke-width="5"
+            stroke-linecap="round" id="ring-circle"
+            stroke-dasharray="175.9" stroke-dashoffset="175.9"/>
+        </svg>
+        <div class="streak-center" id="ring-pct">0%</div>
+      </div>
+    </div>
+
+    <div class="label" style="padding:0 16px;margin-bottom:10px">Esta semana — Biblia cada día</div>
+    <div class="dias-grid" id="dias-grid"></div>
+
+    <div class="label" style="padding:0 16px;margin-bottom:10px">Actividades de hoy</div>
+    <div class="act-list" id="act-list"></div>
+
+    <div style="padding:20px 16px 0">
+      <div class="bar-wrap">
+        <div class="bar-fill" id="prog-bar" style="width:0%;background:var(--accent2)"></div>
+      </div>
+      <div style="font-size:11px;color:var(--text3);margin-top:6px" id="prog-label">0 de 0 actividades hoy</div>
+    </div>
+  </div>
+
+  <!-- PANTALLA SEMANA -->
+  <div class="screen fade-in" id="screen-semana" style="display:none">
+    <div class="header">
+      <div class="header-date">Plan semanal</div>
+      <div class="header-title">Tu semana tipo</div>
+      <div class="header-sub">Teletrabajo · Familia · Crecimiento</div>
+    </div>
+
+    <div class="label" style="padding:0 16px;margin-bottom:10px">Tus ventanas de tiempo</div>
+    <div style="padding:0 16px;margin-bottom:20px">
+      <div class="ventana-card" style="background:rgba(95,207,138,0.1);border-color:rgba(95,207,138,0.2)">
+        <div class="v-time" style="color:var(--accent2)">8:00 AM — Al despertar</div>
+        <div class="v-title" style="color:var(--accent2)">Biblia</div>
+        <div class="v-desc" style="color:rgba(95,207,138,0.7)">Ancla del día. Antes del computador, siempre.</div>
+      </div>
+      <div class="ventana-card" style="background:rgba(124,106,247,0.1);border-color:rgba(124,106,247,0.2)">
+        <div class="v-time" style="color:var(--accent)">10:00 AM — Pausa mañana</div>
+        <div class="v-title" style="color:var(--accent)">Working paper · Guitarra</div>
+        <div class="v-desc" style="color:rgba(124,106,247,0.7)">Alta energía cognitiva. Alterna según el día.</div>
+      </div>
+      <div class="ventana-card" style="background:rgba(247,162,86,0.1);border-color:rgba(247,162,86,0.2)">
+        <div class="v-time" style="color:var(--accent3)">12:30 PM — Pausa almuerzo</div>
+        <div class="v-title" style="color:var(--accent3)">Caminadora · Ensayo lucidez</div>
+        <div class="v-desc" style="color:rgba(247,162,86,0.7)">Movimiento = medicina para el cerebro TDAH.</div>
+      </div>
+      <div class="ventana-card" style="background:rgba(255,255,255,0.04);border-color:var(--border)">
+        <div class="v-time" style="color:var(--text2)">5:00 PM — Tarde-noche</div>
+        <div class="v-title" style="color:var(--text)">Homeschooling Dante · Sanford</div>
+        <div class="v-desc">Energía liviana. Dante primero, Sanford autónomo máx 20 min.</div>
+      </div>
+    </div>
+
+    <div class="label" style="padding:0 16px;margin-bottom:10px">Todas tus actividades</div>
+    <div style="padding:0 16px;display:flex;flex-direction:column;gap:8px;margin-bottom:20px">
+      <div id="acts-semana"></div>
+    </div>
+  </div>
+
+  <!-- PANTALLA PROGRESIÓN -->
+  <div class="screen fade-in" id="screen-prog" style="display:none">
+    <div class="header">
+      <div class="header-date">Construcción progresiva</div>
+      <div class="header-title">Tu camino de 4 semanas</div>
+      <div class="header-sub">Capas, no todo de golpe</div>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-num" id="stat-dias" style="color:var(--accent)">0</div>
+        <div class="stat-lbl">Días Biblia</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" id="stat-acts" style="color:var(--accent2)">0</div>
+        <div class="stat-lbl">Acts. hechas</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" id="stat-sem" style="color:var(--accent3)">1</div>
+        <div class="stat-lbl">Semana actual</div>
+      </div>
+    </div>
+
+    <div id="prog-list"></div>
+
+    <div class="card" style="margin-top:8px;text-align:center;border-color:rgba(124,106,247,.2);background:rgba(124,106,247,.08)">
+      <div style="font-family:'DM Serif Display',serif;font-size:16px;color:var(--accent);margin-bottom:6px">La semana es la unidad, no el día</div>
+      <div style="font-size:12px;color:var(--text2);line-height:1.6">Si un día falla, el plan no falla. Un cerebro con desatención necesita victorias pequeñas y constantes — no perfección.</div>
+    </div>
+  </div>
+
+  <!-- NAV -->
+  <nav class="nav">
+    <button class="nav-btn active" id="nav-hoy" onclick="goTo('hoy')">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+        <circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/>
+      </svg>
+      Hoy
+    </button>
+    <button class="nav-btn" id="nav-semana" onclick="goTo('semana')">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+        <rect x="3" y="4" width="18" height="17" rx="2"/><path d="M8 2v4M16 2v4M3 10h18"/>
+      </svg>
+      Semana
+    </button>
+    <button class="nav-btn" id="nav-prog" onclick="goTo('prog')">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+      </svg>
+      Progresión
+    </button>
+    <button class="nav-btn" id="nav-editar" onclick="goTo('editar')">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+      </svg>
+      Editar
+    </button>
+  </nav>
+</div>
+
+<!-- PANTALLA EDITAR -->
+<div class="screen fade-in" id="screen-editar" style="display:none">
+  <div class="header">
+    <div class="header-date">Personaliza tu sistema</div>
+    <div class="header-title">Mis hábitos</div>
+    <div class="header-sub">Edita, agrega o elimina actividades</div>
+  </div>
+  <div style="padding:0 16px;margin-bottom:12px">
+    <button onclick="abrirModal()" style="width:100%;padding:14px;background:var(--accent);color:#fff;border:none;border-radius:var(--r);font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px">
+      + Agregar nuevo hábito
+    </button>
+  </div>
+  <div id="lista-editar" style="padding:0 16px;display:flex;flex-direction:column;gap:8px;margin-bottom:20px"></div>
+</div>
+
+<!-- MODAL -->
+<div id="modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:200;backdrop-filter:blur(4px)" onclick="cerrarModalOverlay(event)">
+  <div id="modal-box" style="position:absolute;bottom:0;left:50%;transform:translateX(-50%);background:var(--surface);border-radius:24px 24px 0 0;padding:24px 20px 40px;width:100%;max-width:430px;max-height:90vh;overflow-y:auto">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+      <div style="font-family:'DM Serif Display',serif;font-size:20px;color:var(--text)" id="modal-titulo">Nuevo hábito</div>
+      <button onclick="cerrarModal()" style="background:var(--surface2);border:none;color:var(--text2);width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:20px;line-height:1">×</button>
+    </div>
+    <input type="hidden" id="modal-id">
+    <label style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:6px">Nombre del hábito</label>
+    <input id="modal-nombre" type="text" placeholder="Ej: Meditación" style="width:100%;padding:12px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;margin-bottom:16px;outline:none">
+    <label style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:6px">Hora o descripción</label>
+    <input id="modal-tiempo" type="text" placeholder="Ej: 6:00 AM · 15 min" style="width:100%;padding:12px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;margin-bottom:16px;outline:none">
+    <label style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:10px">Días de la semana</label>
+    <div style="display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap" id="modal-dias">
+      <button class="dia-btn" data-dia="0" onclick="toggleDia(0)">Lun</button>
+      <button class="dia-btn" data-dia="1" onclick="toggleDia(1)">Mar</button>
+      <button class="dia-btn" data-dia="2" onclick="toggleDia(2)">Mié</button>
+      <button class="dia-btn" data-dia="3" onclick="toggleDia(3)">Jue</button>
+      <button class="dia-btn" data-dia="4" onclick="toggleDia(4)">Vie</button>
+      <button class="dia-btn" data-dia="5" onclick="toggleDia(5)">Sáb</button>
+      <button class="dia-btn" data-dia="6" onclick="toggleDia(6)">Dom</button>
+    </div>
+    <label style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:10px">Color</label>
+    <div style="display:flex;gap:10px;margin-bottom:24px;flex-wrap:wrap">
+      <div class="color-opt" data-color="#5fcf8a" onclick="selColor('#5fcf8a')" style="background:#5fcf8a"></div>
+      <div class="color-opt" data-color="#7c6af7" onclick="selColor('#7c6af7')" style="background:#7c6af7"></div>
+      <div class="color-opt" data-color="#5b9af7" onclick="selColor('#5b9af7')" style="background:#5b9af7"></div>
+      <div class="color-opt" data-color="#f7a256" onclick="selColor('#f7a256')" style="background:#f7a256"></div>
+      <div class="color-opt" data-color="#f7826a" onclick="selColor('#f7826a')" style="background:#f7826a"></div>
+      <div class="color-opt" data-color="#d97de8" onclick="selColor('#d97de8')" style="background:#d97de8"></div>
+      <div class="color-opt" data-color="#e8d97d" onclick="selColor('#e8d97d')" style="background:#e8d97d"></div>
+      <div class="color-opt" data-color="#7de8d4" onclick="selColor('#7de8d4')" style="background:#7de8d4"></div>
+    </div>
+    <button onclick="guardarHabito()" style="width:100%;padding:14px;background:var(--accent);color:#fff;border:none;border-radius:var(--r);font-family:'DM Sans',sans-serif;font-size:15px;font-weight:600;cursor:pointer">Guardar hábito</button>
+    <button id="btn-eliminar" onclick="eliminarHabito()" style="width:100%;padding:12px;background:transparent;color:#f7826a;border:1px solid rgba(247,130,106,0.3);border-radius:var(--r);font-family:'DM Sans',sans-serif;font-size:14px;cursor:pointer;margin-top:8px;display:none">Eliminar hábito</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── DATOS ──────────────────────────────────────────────────────────
+const ACTIVIDADES = [
+  { id:'biblia',    nombre:'Biblia',               tiempo:'8:00 AM · ancla del día',  color:'#5fcf8a', dias:[0,1,2,3,4,5,6] },
+  { id:'homeschool',nombre:'Homeschooling Dante',  tiempo:'5:00 PM',                  color:'#7c6af7', dias:[0,1,2,3,4] },
+  { id:'working',   nombre:'Working paper',        tiempo:'Pausa mañana · 25 min',    color:'#5b9af7', dias:[0,2,5] },
+  { id:'guitarra',  nombre:'Guitarra',             tiempo:'Pausa · 20-30 min',        color:'#f7826a', dias:[0,2,4] },
+  { id:'caminadora',nombre:'Caminadora',           tiempo:'Pausa almuerzo · 30 min',  color:'#5fcf8a', dias:[1,3,5] },
+  { id:'ensayo',    nombre:'Ensayo de la lucidez', tiempo:'Almuerzo o noche · 20 min',color:'#d97de8', dias:[1,4] },
+  { id:'sanford',   nombre:'Sanford autónomo',     tiempo:'Tarde · máx 20 min',       color:'#f7a256', dias:[0,1,2] },
+  { id:'sanford-c', nombre:'Sanford clase',        tiempo:'Jueves 4:00 PM — fijo',    color:'#f7a256', dias:[3] },
+  { id:'terapia',   nombre:'Terapia Dante',        tiempo:'Viernes 11:45 AM — fijo',  color:'#5fcf8a', dias:[4] },
+];
+
+const SEMANA_DIAS = ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
+
+const PROGRESION = [
+  { sem:1, titulo:'Solo el ancla',          desc:'Biblia cada mañana antes del computador. 7 días seguidos. Demuéstrate que puedes mostrarte.', color:'#7c6af7' },
+  { sem:2, titulo:'Sumas el cuerpo',        desc:'Biblia + caminadora o guitarra en pausa. 3 veces esta semana. El movimiento activa el cerebro.', color:'#5fcf8a' },
+  { sem:3, titulo:'Sumas trabajo profundo', desc:'Todo lo anterior + Working paper 2× + Sanford autónomo 2×. El cerebro ya tiene ritmo base.', color:'#f7a256' },
+  { sem:4, titulo:'Sistema completo',       desc:'El mapa entero. Ajustas según lo que aprendiste de ti mismo las 3 semanas anteriores.', color:'#5b9af7' },
+];
+
+// ── ESTADO ──────────────────────────────────────────────────────────
+function loadState() {
+  try { return JSON.parse(localStorage.getItem('disciplina') || '{}'); } catch(e) { return {}; }
+}
+function saveState(s) {
+  try { localStorage.setItem('disciplina', JSON.stringify(s)); } catch(e) {}
+}
+
+let state = loadState();
+if (!state.dias) state.dias = {};
+if (!state.actsHoy) state.actsHoy = {};
+if (!state.totalActs) state.totalActs = 0;
+if (!state.semActual) state.semActual = 1;
+
+// ── HELPERS ─────────────────────────────────────────────────────────
+function hoy() {
+  const d = new Date();
+  return d.toISOString().split('T')[0];
+}
+function diaSemana() {
+  const d = new Date().getDay();
+  return d === 0 ? 6 : d - 1;
+}
+function calcStreak() {
+  let streak = 0;
+  const d = new Date();
+  for (let i = 0; i < 30; i++) {
+    const key = d.toISOString().split('T')[0];
+    if (state.dias[key]) streak++;
+    else if (i > 0) break;
+    d.setDate(d.getDate() - 1);
+  }
+  return streak;
+}
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ── PANTALLA HOY ─────────────────────────────────────────────────────
+function renderHoy() {
+  // Fecha
+  const opts = { weekday:'long', day:'numeric', month:'long' };
+  document.getElementById('fecha-hoy').textContent =
+    new Date().toLocaleDateString('es-CO', opts).toUpperCase();
+
+  // Streak
+  const streak = calcStreak();
+  document.getElementById('streak-num').textContent = streak;
+  const msgs = ['¡Empieza hoy!','¡Primer día!','¡Dos seguidos!','¡Tres días!','¡Cuatro!','¡Cinco! Ya es hábito.','¡Seis días!','¡Semana completa! 🎉'];
+  document.getElementById('streak-msg').textContent = msgs[Math.min(streak, 7)];
+
+  // Ring
+  const pct = Math.round(streak / 7 * 100);
+  const circumference = 175.9;
+  const offset = circumference - (circumference * Math.min(streak,7) / 7);
+  document.getElementById('ring-circle').style.strokeDashoffset = offset;
+  document.getElementById('ring-pct').textContent = pct + '%';
+
+  // Días grid
+  const grid = document.getElementById('dias-grid');
+  grid.innerHTML = '';
+  const hoyKey = hoy();
+  const hoyDia = diaSemana();
+  // Calcular inicio de semana actual (lunes)
+  const now = new Date();
+  const dayOfWeek = now.getDay();
+  const diffToMon = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+  const lunes = new Date(now);
+  lunes.setDate(now.getDate() + diffToMon);
+
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(lunes);
+    d.setDate(lunes.getDate() + i);
+    const key = d.toISOString().split('T')[0];
+    const isDone = !!state.dias[key];
+    const isToday = key === hoyKey;
+    const btn = document.createElement('button');
+    btn.className = 'dia-btn';
+    btn.innerHTML = `
+      <div class="dia-circle ${isDone?'done':''} ${isToday?'today':''}">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="white" stroke-width="2" stroke-linecap="round">
+          <polyline points="2 7 5.5 10.5 12 3.5"/>
+        </svg>
+      </div>
+      <div class="dia-label" style="color:${isToday?'var(--accent)':'var(--text3)'}">${SEMANA_DIAS[i]}</div>
+    `;
+    if (isToday) {
+      btn.onclick = () => toggleBiblia(key);
+    }
+    grid.appendChild(btn);
+  }
+
+  // Actividades de hoy
+  const list = document.getElementById('act-list');
+  list.innerHTML = '';
+  const actHoy = ACTIVIDADES.filter(a => a.dias.includes(hoyDia));
+  const todayKey = hoyKey;
+  if (!state.actsHoy[todayKey]) state.actsHoy[todayKey] = {};
+
+  let hechas = 0;
+  actHoy.forEach(act => {
+    const done = !!state.actsHoy[todayKey][act.id];
+    if (done) hechas++;
+    const el = document.createElement('div');
+    el.className = `act-item ${done?'done':''}`;
+    el.style.setProperty('--act-color', act.color);
+    el.innerHTML = `
+      <div class="act-dot" style="background:${act.color}"></div>
+      <div style="flex:1">
+        <div class="act-name">${act.nombre}</div>
+        <div class="act-time">${act.tiempo}</div>
+      </div>
+      <div class="act-check">
+        ${done ? `<svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"><polyline points="1.5 6 4.5 9 10.5 3"/></svg>` : ''}
+      </div>
+    `;
+    el.style.cssText += `border-left:3px solid ${act.color}20`;
+    el.querySelector('.act-item') && (el.style.borderLeft = `3px solid ${act.color}40`);
+    el.onclick = () => toggleAct(act, todayKey);
+    list.appendChild(el);
+  });
+
+  // Barra
+  const pctActs = actHoy.length ? Math.round(hechas / actHoy.length * 100) : 0;
+  document.getElementById('prog-bar').style.width = pctActs + '%';
+  document.getElementById('prog-label').textContent = `${hechas} de ${actHoy.length} actividades completadas hoy`;
+}
+
+function toggleBiblia(key) {
+  state.dias[key] = !state.dias[key];
+  saveState(state);
+  if (state.dias[key]) {
+    showToast('¡Biblia hecha! Empezaste el día con intención.');
+    // También marcar en actividades
+    if (!state.actsHoy[key]) state.actsHoy[key] = {};
+    state.actsHoy[key]['biblia'] = true;
+  } else {
+    if (state.actsHoy[key]) delete state.actsHoy[key]['biblia'];
+    showToast('Desmarcado.');
+  }
+  saveState(state);
+  renderHoy();
+  updateStats();
+}
+
+function toggleAct(act, key) {
+  if (!state.actsHoy[key]) state.actsHoy[key] = {};
+  const wasDone = !!state.actsHoy[key][act.id];
+  state.actsHoy[key][act.id] = !wasDone;
+  if (!wasDone) {
+    state.totalActs = (state.totalActs || 0) + 1;
+    if (act.id === 'biblia') {
+      state.dias[key] = true;
+    }
+    showToast(`¡${act.nombre} completada!`);
+  } else {
+    state.totalActs = Math.max(0, (state.totalActs || 1) - 1);
+    if (act.id === 'biblia') state.dias[key] = false;
+  }
+  saveState(state);
+  renderHoy();
+  updateStats();
+}
+
+// ── PANTALLA SEMANA ───────────────────────────────────────────────────
+function renderSemana() {
+  const cont = document.getElementById('acts-semana');
+  cont.innerHTML = '';
+  const grupos = [
+    { titulo:'Fijas inamovibles', ids:['biblia','terapia','sanford-c'] },
+    { titulo:'Flexibles en la semana', ids:['working','guitarra','caminadora','ensayo','homeschool','sanford'] },
+  ];
+  grupos.forEach(g => {
+    const lbl = document.createElement('div');
+    lbl.className = 'label';
+    lbl.style.marginBottom = '8px';
+    lbl.textContent = g.titulo;
+    cont.appendChild(lbl);
+    g.ids.forEach(id => {
+      const act = ACTIVIDADES.find(a => a.id === id);
+      if (!act) return;
+      const el = document.createElement('div');
+      el.style.cssText = `display:flex;align-items:center;gap:12px;background:var(--surface);border:0.5px solid var(--border);border-radius:var(--rs);padding:12px 14px;margin-bottom:8px;border-left:3px solid ${act.color}40`;
+      const diasStr = act.dias.map(d => SEMANA_DIAS[d]).join(', ');
+      el.innerHTML = `
+        <div style="width:10px;height:10px;border-radius:50%;background:${act.color};flex-shrink:0"></div>
+        <div style="flex:1">
+          <div style="font-size:14px;color:var(--text);margin-bottom:2px">${act.nombre}</div>
+          <div style="font-size:11px;color:var(--text3)">${act.tiempo}</div>
+        </div>
+        <div style="font-size:10px;color:var(--text3);text-align:right;line-height:1.4">${diasStr}</div>
+      `;
+      cont.appendChild(el);
+    });
+    cont.appendChild(document.createElement('div')).style.height = '8px';
+  });
+}
+
+// ── PANTALLA PROGRESIÓN ───────────────────────────────────────────────
+function updateStats() {
+  const totalBiblia = Object.values(state.dias).filter(Boolean).length;
+  document.getElementById('stat-dias').textContent = totalBiblia;
+  document.getElementById('stat-acts').textContent = state.totalActs || 0;
+  document.getElementById('stat-sem').textContent = state.semActual || 1;
+}
+
+function renderProg() {
+  updateStats();
+  const list = document.getElementById('prog-list');
+  list.innerHTML = '';
+  PROGRESION.forEach((p, idx) => {
+    const isActive = p.sem === (state.semActual || 1);
+    const isDone = p.sem < (state.semActual || 1);
+    const item = document.createElement('div');
+    item.className = 'prog-item';
+    item.innerHTML = `
+      <div class="prog-line">
+        <div class="prog-dot ${isActive?'prog-active':''}" style="background:${isDone?p.color:isActive?p.color+'33':'var(--surface2)'};color:${isDone||isActive?p.color:'var(--text3)'};border:1.5px solid ${isDone||isActive?p.color:'var(--text3)'}">
+          ${isDone ? `<svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="2 7 5.5 10.5 12 3.5"/></svg>` : p.sem}
+        </div>
+        ${idx < 3 ? `<div class="prog-connector" style="background:${isDone?p.color:'var(--border)'}"></div>` : ''}
+      </div>
+      <div class="prog-body">
+        <div class="prog-sem" style="color:${isActive||isDone?p.color:'var(--text3)'}">Semana ${p.sem}</div>
+        <div class="prog-title" style="color:${isActive?'var(--text)':isDone?'var(--text2)':'var(--text3)'}">${p.titulo}</div>
+        <div class="prog-desc">${p.desc}</div>
+        ${isActive ? `
+          <div style="margin-top:8px">
+            <button onclick="avanzarSem()" style="background:${p.color}22;border:0.5px solid ${p.color}44;border-radius:99px;padding:6px 14px;font-size:12px;color:${p.color};cursor:pointer;font-family:'DM Sans',sans-serif">
+              Marcar semana ${p.sem} completa →
+            </button>
+          </div>
+        ` : ''}
+      </div>
+    `;
+    list.appendChild(item);
+  });
+}
+
+function avanzarSem() {
+  if (state.semActual < 4) {
+    state.semActual++;
+    saveState(state);
+    showToast(`¡Pasaste a la semana ${state.semActual}! 🎉`);
+    renderProg();
+  } else {
+    showToast('¡Completaste las 4 semanas! Eres un crack.');
+  }
+}
+
+// ── NAVEGACIÓN ────────────────────────────────────────────────────────
+function goTo(screen) {
+  if (screen === 'editar') renderEditar();
+  ['hoy','semana','prog','editar'].forEach(s => {
+    document.getElementById('screen-' + s).style.display = s === screen ? 'block' : 'none';
+    document.getElementById('nav-' + s).classList.toggle('active', s === screen);
+  });
+  if (screen === 'hoy') renderHoy();
+  if (screen === 'semana') renderSemana();
+  if (screen === 'prog') renderProg();
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────
+renderHoy();
+
+// Service worker
+
+
+// ── ACTIVIDADES EDITABLES ────────────────────────────────────────────
+const ACTIVIDADES_DEFAULT = [
+  { id:'biblia',    nombre:'Biblia',               tiempo:'8:00 AM · ancla del día',  color:'#5fcf8a', dias:[0,1,2,3,4,5,6] },
+  { id:'homeschool',nombre:'Homeschooling Dante',  tiempo:'5:00 PM',                  color:'#7c6af7', dias:[0,1,2,3,4] },
+  { id:'working',   nombre:'Working paper',        tiempo:'Pausa mañana · 25 min',    color:'#5b9af7', dias:[0,2,5] },
+  { id:'guitarra',  nombre:'Guitarra',             tiempo:'Pausa · 20-30 min',        color:'#f7826a', dias:[0,2,4] },
+  { id:'caminadora',nombre:'Caminadora',           tiempo:'Pausa almuerzo · 30 min',  color:'#5fcf8a', dias:[1,3,5] },
+  { id:'ensayo',    nombre:'Ensayo de la lucidez', tiempo:'Almuerzo o noche · 20 min',color:'#d97de8', dias:[1,4] },
+  { id:'sanford',   nombre:'Sanford autónomo',     tiempo:'Tarde · máx 20 min',       color:'#f7a256', dias:[0,1,2] },
+  { id:'sanford-c', nombre:'Sanford clase',        tiempo:'Jueves 4:00 PM — fijo',    color:'#f7a256', dias:[3] },
+  { id:'terapia',   nombre:'Terapia Dante',        tiempo:'Viernes 11:45 AM — fijo',  color:'#5fcf8a', dias:[4] },
+];
+
+function loadActs() {
+  try {
+    const s = localStorage.getItem('acts-custom');
+    return s ? JSON.parse(s) : JSON.parse(JSON.stringify(ACTIVIDADES_DEFAULT));
+  } catch(e) { return JSON.parse(JSON.stringify(ACTIVIDADES_DEFAULT)); }
+}
+function saveActs(acts) {
+  try { localStorage.setItem('acts-custom', JSON.stringify(acts)); } catch(e) {}
+}
+
+let actsCustom = loadActs();
+// Sincronizar ACTIVIDADES con actsCustom
+ACTIVIDADES.length = 0;
+actsCustom.forEach(a => ACTIVIDADES.push(a));
+
+const DIAS_NAMES = ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
+let modalDiasSeleccionados = [];
+let modalColorSeleccionado = '#7c6af7';
+
+function renderEditar() {
+  const lista = document.getElementById('lista-editar');
+  lista.innerHTML = '';
+  actsCustom.forEach(act => {
+    const diasStr = act.dias.map(d => DIAS_NAMES[d]).join(', ');
+    const div = document.createElement('div');
+    div.className = 'edit-card';
+    div.innerHTML = `
+      <div class="edit-dot" style="background:${act.color}"></div>
+      <div class="edit-info">
+        <div class="edit-nombre">${act.nombre}</div>
+        <div class="edit-tiempo">${act.tiempo}</div>
+        <div class="edit-dias">${diasStr || 'Sin días asignados'}</div>
+      </div>
+      <button class="edit-btn" onclick="abrirModalEditar('${act.id}')">✏️ Editar</button>
+    `;
+    lista.appendChild(div);
+  });
+}
+
+function abrirModal() {
+  document.getElementById('modal-titulo').textContent = 'Nuevo hábito';
+  document.getElementById('modal-id').value = '';
+  document.getElementById('modal-nombre').value = '';
+  document.getElementById('modal-tiempo').value = '';
+  document.getElementById('btn-eliminar').style.display = 'none';
+  modalDiasSeleccionados = [];
+  modalColorSeleccionado = '#7c6af7';
+  actualizarBotonesDias();
+  actualizarBotonesColores();
+  document.getElementById('modal-overlay').style.display = 'block';
+}
+
+function abrirModalEditar(id) {
+  const act = actsCustom.find(a => a.id === id);
+  if (!act) return;
+  document.getElementById('modal-titulo').textContent = 'Editar hábito';
+  document.getElementById('modal-id').value = id;
+  document.getElementById('modal-nombre').value = act.nombre;
+  document.getElementById('modal-tiempo').value = act.tiempo;
+  document.getElementById('btn-eliminar').style.display = 'block';
+  modalDiasSeleccionados = [...act.dias];
+  modalColorSeleccionado = act.color;
+  actualizarBotonesDias();
+  actualizarBotonesColores();
+  document.getElementById('modal-overlay').style.display = 'block';
+}
+
+function cerrarModal() {
+  document.getElementById('modal-overlay').style.display = 'none';
+}
+
+function cerrarModalOverlay(e) {
+  if (e.target === document.getElementById('modal-overlay')) cerrarModal();
+}
+
+function toggleDia(d) {
+  const idx = modalDiasSeleccionados.indexOf(d);
+  if (idx >= 0) modalDiasSeleccionados.splice(idx, 1);
+  else modalDiasSeleccionados.push(d);
+  actualizarBotonesDias();
+}
+
+function actualizarBotonesDias() {
+  document.querySelectorAll('.dia-btn').forEach(btn => {
+    const d = parseInt(btn.dataset.dia);
+    btn.classList.toggle('sel', modalDiasSeleccionados.includes(d));
+  });
+}
+
+function selColor(c) {
+  modalColorSeleccionado = c;
+  actualizarBotonesColores();
+}
+
+function actualizarBotonesColores() {
+  document.querySelectorAll('.color-opt').forEach(el => {
+    el.classList.toggle('sel', el.dataset.color === modalColorSeleccionado);
+  });
+}
+
+function guardarHabito() {
+  const nombre = document.getElementById('modal-nombre').value.trim();
+  const tiempo = document.getElementById('modal-tiempo').value.trim();
+  const id = document.getElementById('modal-id').value;
+  if (!nombre) { showToast('Escribe el nombre del hábito'); return; }
+  if (modalDiasSeleccionados.length === 0) { showToast('Selecciona al menos un día'); return; }
+
+  if (id) {
+    const idx = actsCustom.findIndex(a => a.id === id);
+    if (idx >= 0) {
+      actsCustom[idx] = { ...actsCustom[idx], nombre, tiempo, color: modalColorSeleccionado, dias: [...modalDiasSeleccionados].sort() };
+    }
+    showToast('✅ Hábito actualizado');
+  } else {
+    const newId = 'habit-' + Date.now();
+    actsCustom.push({ id: newId, nombre, tiempo, color: modalColorSeleccionado, dias: [...modalDiasSeleccionados].sort() });
+    showToast('✅ Hábito agregado');
+  }
+
+  saveActs(actsCustom);
+  ACTIVIDADES.length = 0;
+  actsCustom.forEach(a => ACTIVIDADES.push(a));
+  cerrarModal();
+  renderEditar();
+  renderHoy();
+}
+
+function eliminarHabito() {
+  const id = document.getElementById('modal-id').value;
+  if (!id) return;
+  actsCustom = actsCustom.filter(a => a.id !== id);
+  saveActs(actsCustom);
+  ACTIVIDADES.length = 0;
+  actsCustom.forEach(a => ACTIVIDADES.push(a));
+  cerrarModal();
+  renderEditar();
+  renderHoy();
+  showToast('🗑️ Hábito eliminado');
+}
+
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+</script>
+</body>
+</html>
